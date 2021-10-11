@@ -17,7 +17,7 @@ set ylabel "Counts"
 # You can plot multiple data sets by separating them with a comma
 # the '\' is a line break, used just to make the script more readable
 
-# plot "data.file" using xcolumn:ycolumn -options
+# plot "output.dat" using xcolumn:ycolumn -options
 
 plot "sorted.dat" using 1:2 w points linecolor rgb "red" tit "Detector 1",\
  "sorted.dat" using 1:3 with points lc rgb "black" tit  "Detector 2",\
