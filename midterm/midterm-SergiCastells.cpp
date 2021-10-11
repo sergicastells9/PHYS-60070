@@ -122,7 +122,7 @@ std::string* setTrg(int ch) {
 	return vals;
 }
 // Prompts user for projectile and returns those values in nuc instance
-nuc setPrj(nuc proj) {
+nuc setPrj(nuc &proj) {
 	std::string prj;
 	
 	std::cout << "Specify projectile (p, d, t, 3He, alpha):" << std::endl;
@@ -145,17 +145,17 @@ nuc setPrj(nuc proj) {
 	if(p) {
 		proj.Z = 1;
 		proj.A = 1;
-		proj.elem = "H";
+		proj.elem = "p";
 	}
 	if(d) {
 		proj.Z = 1;
 		proj.A = 2;
-		proj.elem = "H";
+		proj.elem = "d";
 	}
 	if(t) {
 		proj.Z = 1;
 		proj.A = 3;
-		proj.elem = "H";
+		proj.elem = "t";
 	}
 	if(He) {
 		proj.Z = 2;
@@ -165,7 +165,7 @@ nuc setPrj(nuc proj) {
 	if(alpha) {
 		proj.Z = 2;
 		proj.A = 4;
-		proj.elem = "He";
+		proj.elem = "alpha";
 	}
 	
 	return proj;
@@ -206,18 +206,17 @@ nuc fillTrg(nuc &target, nuc* all, std::string* vals, int ch) {
 
 // Fills prd array in Q instance
 Q fillPrd(Q &q, nuc &target, nuc &proj, nuc* all) {
-	std::cout << "inside 1" << std::endl;
 	int sumZ = target.Z + proj.Z;
 	int sumA = target.A + proj.A;
 	int decayZ[8] = {0, 1, 1, 0, 0, 0, 2, 2};
 	int decayA[8] = {0, 2, 3, 1, 2, 3, 4, 3};
 	std::string decay[8] = {"gamma", "d", "t", "n", "2n", "3n", "alpha", "3He"};
 	
+	// works here
 	for(int i = 0; i < 8; i++) {
 		if(decayZ[i] == 0 && decayA[i] == 0) {
 			q.prod[i].mass[1] = 0;
 		}
-		std::cout << "inside 2" << std::endl;
 		for(int j = 0; j < 3436; j++) {
 			if(sumZ - decayZ[i] == all[j].Z && sumA - decayA[i] == all[j].A) {
 				q.prod[i].elem = all[j].elem;
@@ -227,19 +226,29 @@ Q fillPrd(Q &q, nuc &target, nuc &proj, nuc* all) {
 			if(decayZ[i] == all[j].Z && decayA[i] == all[j].A) {
 				q.prod[i].mass[1] = all[j].mass;
 			}
+			
+			// Fill mass of projectile here
+			if(proj.Z == all[j].Z && proj.A == all[j].A) {
+				proj.mass = all[j].mass;
+			}
 		}
 	}
 	
-	std::cout << "inside 3" << std::endl;
 	return q;
 }
 
 
 // Fill Q struct instance (also calculates Q-values)
-Q fillQ(Q q, nuc target, nuc proj, double* range) {
+Q fillQ(Q &q, nuc &target, nuc &proj, double* range) {
 	q.target = target;
 	q.proj = proj;
 	q.range = range;
+	q.prod = new prd[8];
+	q.qValues = new double[8];
+	
+	for(int i = 0; i < 8; i++) {
+		q.prod[i].mass = new double[2];
+	}
 	
 	return q;
 }
@@ -311,14 +320,16 @@ nuc* readFile() {
 
 // Prints Q-values to screen with (*) if Q is within bounds
 void printQValues(Q q) {
-	std::cout << "\n\t\t-- Q-values --" << std::endl;
+	std::cout << std::setw(18) << "\n\t\t-- Reaction --";
+	std::cout << std::setw(18) << "\t\t\t\t-- Q-values --";
+	std::cout << "\t\tMatch"<< std::endl;
 	
 	for(int i = 0; i < 8; i++) {
 		std::cout << std::setw(18) << q.target.elem << " + " << q.proj.elem << " -> " << q.prod[i].elem << " + "  << q.prod[i].decay;
 		std::cout << "\t\t";
 		std::cout << std::setw(18) << q.qValues[i];
 		
-		if(q.qValues[i] < q.range[0] || q.qValues[i] > q.range[1]) {
+		if(q.qValues[i] >= q.range[0] && q.qValues[i] <= q.range[1]) {
 			std::cout << "\t\t (*)" << std::endl;
 		}
 		else {
@@ -339,13 +350,15 @@ void saveQValues(Q q) {
 	}
 	
 	// Write header
-	file << "     Reaction     \t\t      Q-Value     " << std::endl;
+	file << std::setw(18) << "\n\t\t-- Reaction --";
+	file << std::setw(18) << "\t\t\t\t-- Q-values --" << std::endl;
 	
+	// Write Q-values
 	for(int i = 0; i < 8; i++) {
-		if(q.qValues[i] < q.range[0] || q.qValues[i] > q.range[1]) {
+		if(q.qValues[i] >= q.range[0] && q.qValues[i] <= q.range[1]) {
 			file << std::setw(18) << q.target.elem << " + " << q.proj.elem << " -> " << q.prod[i].elem << " + "  << q.prod[i].decay;
 			file << "\t\t";
-			file << std::setw(18) << q.qValues[i] << std::endl;
+			file << std::setw(18) << q.qValues[i];
 		}
 	}
 }
@@ -369,28 +382,29 @@ int main() {
 	
 	// Range Setup
 	std::cout << "\n\t\t-- Range information --" << std::endl;
-	double* range = getRange();	
+	double* range = getRange();
 	
 	// Read file and store data
 	all = readFile();
 	
 	// Fill structs
 	target = fillTrg(target, all, trg_values, trg_choice);
-
-	//This works so far
+	
 	
 	q = fillQ(q, target, proj, range);
-	std::cout << "test 1" << std::endl;
 	q = fillPrd(q, target, proj, all); // testing this
-	std::cout << "test 2" << std::endl;
 	q = calcQValues(q);
 	
 	// Print and Save Q-values
 	printQValues(q);
 	saveQValues(q);
 	
-	free(trg_values);
-	free(range);
-	free(all);
+	// Delete dynamically allocated variables
+	delete[] trg_values;
+	delete[] range;
+	delete[] all;
+	for(int i = 0; i < 8; i++) { delete[] q.prod[i].mass; }
+	delete[] q.prod;
+	
 	return 0;
 }
