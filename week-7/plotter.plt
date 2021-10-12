@@ -19,7 +19,7 @@ set ylabel "Counts"
 
 # plot "output.dat" using xcolumn:ycolumn -options
 
-plot "sorted.dat" using 1:2 w points linecolor rgb "red" tit "Detector 1",\
- "sorted.dat" using 1:3 with points lc rgb "black" tit  "Detector 2",\
- "sorted.dat" using 1:4 with points lc rgb "green" tit  "Detector 3",\
- "sorted.dat" using 1:5 with points lc rgb "blue" tit "Detector 4"
+plot "output.dat" using 1:2 w points linecolor rgb "red" tit "Detector 1",\
+ "output.dat" using 1:3 with points lc rgb "black" tit  "Detector 2",\
+ "output.dat" using 1:4 with points lc rgb "green" tit  "Detector 3",\
+ "output.dat" using 1:5 with points lc rgb "blue" tit "Detector 4"
