@@ -48,6 +48,7 @@ struct prd {
 	std::string elem;
 	std::string decay;
 	
+	int Z;
 	double* mass;
 };
 
@@ -100,6 +101,7 @@ double* getRange() {
 std::string* setTrg(int ch) {
 	std::string* vals = new std::string[2];
 	
+	// Checks Z/A or Elem/A choice
 	if(ch == 1) {
 		std::cout << "\nSpecify Z and A:" << std::endl;
 		std::cout << "> ";
@@ -110,6 +112,9 @@ std::string* setTrg(int ch) {
 			std::cout << "Z must be less than or equal to A." << std::endl;
 			exit(2);
 		}
+		if(std::stoi(vals[0]) < 0 || std::stoi(vals[1]) < 0) {
+			std::cout << "Z/A must be greater than zero." << std::endl;
+		}
 	}
 	
 	if(ch == 2) {
@@ -117,6 +122,10 @@ std::string* setTrg(int ch) {
 		std::cout << "> ";
 		std::cin >> vals[0] >> vals[1];
 		std::cout << std::endl;
+		
+		if(std::stoi(vals[1]) < 0) {
+			std::cout << "A must be greater than zero." << std::endl;
+		}
 	}
 	
 	return vals;
@@ -136,6 +145,7 @@ nuc setPrj(nuc &proj) {
 	bool He = prj == "3He";
 	bool alpha = prj == "alpha";
 	
+	// Check restrictions
 	if(!p && !d && !t && !He && !alpha) {
 		std::cout << "Projectile must be from the required list." << std::endl;
 		exit(4);
@@ -172,8 +182,24 @@ nuc setPrj(nuc &proj) {
 }
 
 
+// Fills projectile nuc instance with masses
+nuc fillPrj(nuc &proj, nuc* all) {
+	for(int i = 0; i < 8; i++) {
+		for(int j = 0; j < 3436; j++) {
+			if(proj.Z == all[j].Z && proj.A == all[j].A) {
+				proj.mass = all[j].mass;
+				break;
+			}
+		}
+	}
+	
+	return proj;
+}
+
+
 // Fills trg nuc instance (also retrieves missing Z/elem)
 nuc fillTrg(nuc &target, nuc* all, std::string* vals, int ch) {
+	// Checks Z/A and Elem/A choice
 	if(ch == 1) {
 		target.Z = std::stoi(vals[0]);
 		target.A = std::stoi(vals[1]);
@@ -206,39 +232,40 @@ nuc fillTrg(nuc &target, nuc* all, std::string* vals, int ch) {
 
 // Fills prd array in Q instance
 Q fillPrd(Q &q, nuc &target, nuc &proj, nuc* all) {
+	// Z/A conservation and decay Z/A/Elem
 	int sumZ = target.Z + proj.Z;
 	int sumA = target.A + proj.A;
 	int decayZ[8] = {0, 1, 1, 0, 0, 0, 2, 2};
 	int decayA[8] = {0, 2, 3, 1, 2, 3, 4, 3};
 	std::string decay[8] = {"gamma", "d", "t", "n", "2n", "3n", "alpha", "3He"};
 	
-	// works here
+	// Sets product name, decay name, and masses (mass[0] = product mass, mass[1] = decay mass)
 	for(int i = 0; i < 8; i++) {
 		if(decayZ[i] == 0 && decayA[i] == 0) {
 			q.prod[i].mass[1] = 0;
+			q.prod[i].Z = 0;
 		}
 		for(int j = 0; j < 3436; j++) {
 			if(sumZ - decayZ[i] == all[j].Z && sumA - decayA[i] == all[j].A) {
 				q.prod[i].elem = all[j].elem;
 				q.prod[i].decay = decay[i];
 				q.prod[i].mass[0] = all[j].mass;
+				q.prod[i].Z = all[j].Z;
 			}
 			if(decayZ[i] == all[j].Z && decayA[i] == all[j].A) {
 				q.prod[i].mass[1] = all[j].mass;
 			}
-			
-			// Fill mass of projectile here
-			if(proj.Z == all[j].Z && proj.A == all[j].A) {
-				proj.mass = all[j].mass;
-			}
 		}
 	}
+	
+	q.prod[4].mass[1] = q.prod[3].mass[1] * 2;
+	q.prod[5].mass[1] = q.prod[3].mass[1] * 3;
 	
 	return q;
 }
 
 
-// Fill Q struct instance (also calculates Q-values)
+// Fill Q struct instance and dynamically allocates arrays as needed
 Q fillQ(Q &q, nuc &target, nuc &proj, double* range) {
 	q.target = target;
 	q.proj = proj;
@@ -276,7 +303,7 @@ nuc* readFile() {
 	std::string elem;
 	double mass;
 	
-	// Housekeeping variables
+	// Line variables
 	int line_start;
 	
 	// Check if file opened successfully
@@ -321,19 +348,21 @@ nuc* readFile() {
 // Prints Q-values to screen with (*) if Q is within bounds
 void printQValues(Q q) {
 	std::cout << std::setw(18) << "\n\t\t-- Reaction --";
-	std::cout << std::setw(18) << "\t\t\t\t-- Q-values --";
+	std::cout << std::setw(18) << "\t\t\t-- Q-values --";
 	std::cout << "\t\tMatch"<< std::endl;
 	
 	for(int i = 0; i < 8; i++) {
-		std::cout << std::setw(18) << q.target.elem << " + " << q.proj.elem << " -> " << q.prod[i].elem << " + "  << q.prod[i].decay;
+		std::cout << std::setw(10) << q.target.elem << "-" << q.target.Z << std::setw(1) << " + " << std::setw(2) << q.proj.elem << " -> ";
+		std::cout << std::setw(4) << q.prod[i].elem << "-" << q.prod[i].Z << std::setw(1) << " + "  << std::setw(2) << q.prod[i].decay;
 		std::cout << "\t\t";
-		std::cout << std::setw(18) << q.qValues[i];
+		std::cout << std::setw(8) << q.qValues[i];
 		
+		// Mark "good" Q-values
 		if(q.qValues[i] >= q.range[0] && q.qValues[i] <= q.range[1]) {
-			std::cout << "\t\t (*)" << std::endl;
+			std::cout << std::setw(12) << "\t\t (*)" << std::endl;
 		}
 		else {
-			std::cout << "\t\t ( )" << std::endl;
+			std::cout << std::setw(12) << "\t\t ( )" << std::endl;
 		}
 	}
 }
@@ -356,9 +385,10 @@ void saveQValues(Q q) {
 	// Write Q-values
 	for(int i = 0; i < 8; i++) {
 		if(q.qValues[i] >= q.range[0] && q.qValues[i] <= q.range[1]) {
-			file << std::setw(18) << q.target.elem << " + " << q.proj.elem << " -> " << q.prod[i].elem << " + "  << q.prod[i].decay;
+			file << std::setw(10) << q.target.elem << "-" << q.target.Z << std::setw(1) << " + " << std::setw(2) << q.proj.elem << " -> ";
+			file << std::setw(4) << q.prod[i].elem << "-" << q.prod[i].Z << std::setw(1) << " + "  << std::setw(2) << q.prod[i].decay;
 			file << "\t\t";
-			file << std::setw(18) << q.qValues[i];
+			file << std::setw(8) << q.qValues[i];
 		}
 	}
 }
@@ -389,17 +419,19 @@ int main() {
 	
 	// Fill structs
 	target = fillTrg(target, all, trg_values, trg_choice);
-	
-	
+	proj = fillPrj(proj, all);
 	q = fillQ(q, target, proj, range);
-	q = fillPrd(q, target, proj, all); // testing this
+	q = fillPrd(q, target, proj, all);
+	
+	// Calculate Q-values
 	q = calcQValues(q);
 	
 	// Print and Save Q-values
 	printQValues(q);
 	saveQValues(q);
 	
-	// Delete dynamically allocated variables
+	
+	// Delete dynamically allocated memory
 	delete[] trg_values;
 	delete[] range;
 	delete[] all;
