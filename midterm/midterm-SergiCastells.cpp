@@ -5,7 +5,7 @@
 	Exit codes:
 				0 - OK
 				1 - choice != 1 or 2
-				2 - Z not <= A
+				2 - Z not <= A or Elem and A invalid
 				3 - min not < max
 				4 - Projectile not within restrictions
 				5 - File falied to open
@@ -49,6 +49,7 @@ struct prd {
 	std::string decay;
 	
 	int Z;
+	int A;
 	double* mass;
 };
 
@@ -72,6 +73,7 @@ int getChoice() {
 	
 	if(choice != 1 && choice != 2) {
 		std::cout << "Must provide a value of either 1 or 2." << std::endl;
+		std::cout << "Exiting program..." << std::endl;
 		exit(1);
 	}
 	
@@ -90,6 +92,7 @@ double* getRange() {
 	
 	if(!(vals[0] < vals[1])) {
 		std::cout << "Minimum must be strictly less than maximum." << std::endl;
+		std::cout << "Exiting program..." << std::endl;
 		exit(3);
 	}
 	
@@ -110,10 +113,13 @@ std::string* setTrg(int ch) {
 		
 		if(!(std::stoi(vals[0]) <= std::stoi(vals[1]))) {
 			std::cout << "Z must be less than or equal to A." << std::endl;
+			std::cout << "Exiting program..." << std::endl;
 			exit(2);
 		}
 		if(std::stoi(vals[0]) < 0 || std::stoi(vals[1]) < 0) {
 			std::cout << "Z/A must be greater than zero." << std::endl;
+			std::cout << "Exiting program..." << std::endl;
+			exit(2);
 		}
 	}
 	
@@ -125,6 +131,8 @@ std::string* setTrg(int ch) {
 		
 		if(std::stoi(vals[1]) < 0) {
 			std::cout << "A must be greater than zero." << std::endl;
+			std::cout << "Exiting program..." << std::endl;
+			exit(2);
 		}
 	}
 	
@@ -148,6 +156,7 @@ nuc setPrj(nuc &proj) {
 	// Check restrictions
 	if(!p && !d && !t && !He && !alpha) {
 		std::cout << "Projectile must be from the required list." << std::endl;
+		std::cout << "Exiting program..." << std::endl;
 		exit(4);
 	}
 	
@@ -199,6 +208,8 @@ nuc fillPrj(nuc &proj, nuc* all) {
 
 // Fills trg nuc instance (also retrieves missing Z/elem)
 nuc fillTrg(nuc &target, nuc* all, std::string* vals, int ch) {
+	bool valid = false;
+	
 	// Checks Z/A and Elem/A choice
 	if(ch == 1) {
 		target.Z = std::stoi(vals[0]);
@@ -206,6 +217,7 @@ nuc fillTrg(nuc &target, nuc* all, std::string* vals, int ch) {
 		
 		for(int i = 0; i < 3436; i++) {
 			if(target.Z == all[i].Z && target.A == all[i].A) {
+				valid = true;
 				target.elem = all[i].elem;
 				target.mass = all[i].mass;
 				break;
@@ -219,11 +231,18 @@ nuc fillTrg(nuc &target, nuc* all, std::string* vals, int ch) {
 		
 		for(int i = 0; i < 3436; i++) {
 			if(target.elem == all[i].elem && target.A == all[i].A) {
+				valid = true;
 				target.Z = all[i].Z;
 				target.mass = all[i].mass;
 				break;
 			}
 		}
+	}
+	
+	if(!valid) {
+		std::cout << "Invalid input for target." << std::endl;
+		std::cout << "Exiting program..." << std::endl;
+		exit(2);
 	}
 	
 	return target;
@@ -244,6 +263,7 @@ Q fillPrd(Q &q, nuc &target, nuc &proj, nuc* all) {
 		if(decayZ[i] == 0 && decayA[i] == 0) {
 			q.prod[i].mass[1] = 0;
 			q.prod[i].Z = 0;
+			q.prod[i].A = 0;
 		}
 		for(int j = 0; j < 3436; j++) {
 			if(sumZ - decayZ[i] == all[j].Z && sumA - decayA[i] == all[j].A) {
@@ -251,6 +271,7 @@ Q fillPrd(Q &q, nuc &target, nuc &proj, nuc* all) {
 				q.prod[i].decay = decay[i];
 				q.prod[i].mass[0] = all[j].mass;
 				q.prod[i].Z = all[j].Z;
+				q.prod[i].A = all[j].A;
 			}
 			if(decayZ[i] == all[j].Z && decayA[i] == all[j].A) {
 				q.prod[i].mass[1] = all[j].mass;
@@ -309,6 +330,7 @@ nuc* readFile() {
 	// Check if file opened successfully
 	if(!file.is_open()) {
 		std::cout << "File failed to open!" << std::endl;
+		std::cout << "Exiting program..." << std::endl;
 		exit(5);
 	}
 	
@@ -348,12 +370,13 @@ nuc* readFile() {
 // Prints Q-values to screen with (*) if Q is within bounds
 void printQValues(Q q) {
 	std::cout << std::setw(18) << "\n\t\t-- Reaction --";
-	std::cout << std::setw(18) << "\t\t\t-- Q-values --";
+	std::cout << std::setw(18) << "\t\t\t-- Q-values (keV) --";
+	std::cout << std::setw(18) << "\t\t\t-- Q-values (keV) --";
 	std::cout << "\t\tMatch"<< std::endl;
 	
 	for(int i = 0; i < 8; i++) {
-		std::cout << std::setw(10) << q.target.elem << "-" << q.target.Z << std::setw(1) << " + " << std::setw(2) << q.proj.elem << " -> ";
-		std::cout << std::setw(4) << q.prod[i].elem << "-" << q.prod[i].Z << std::setw(1) << " + "  << std::setw(2) << q.prod[i].decay;
+		std::cout << std::setw(10) << q.target.elem << "-" << q.target.A << std::setw(1) << " + " << std::setw(2) << q.proj.elem << " -> ";
+		std::cout << std::setw(4) << q.prod[i].elem << "-" << q.prod[i].A << std::setw(1) << " + "  << std::setw(2) << q.prod[i].decay;
 		std::cout << "\t\t";
 		std::cout << std::setw(8) << q.qValues[i];
 		
@@ -375,18 +398,19 @@ void saveQValues(Q q) {
 	// Check if file opened successfully
 	if(!file.is_open()) {
 		std::cout << "File failed to open!" << std::endl;
+		std::cout << "Exiting program..." << std::endl;
 		exit(5);
 	}
 	
 	// Write header
 	file << std::setw(18) << "\n\t\t-- Reaction --";
-	file << std::setw(18) << "\t\t\t\t-- Q-values --" << std::endl;
+	file << std::setw(18) << "\t\t\t\t-- Q-values (keV) --" << std::endl;
 	
 	// Write Q-values
 	for(int i = 0; i < 8; i++) {
 		if(q.qValues[i] >= q.range[0] && q.qValues[i] <= q.range[1]) {
-			file << std::setw(10) << q.target.elem << "-" << q.target.Z << std::setw(1) << " + " << std::setw(2) << q.proj.elem << " -> ";
-			file << std::setw(4) << q.prod[i].elem << "-" << q.prod[i].Z << std::setw(1) << " + "  << std::setw(2) << q.prod[i].decay;
+			file << std::setw(10) << q.target.elem << "-" << q.target.A << std::setw(1) << " + " << std::setw(2) << q.proj.elem << " -> ";
+			file << std::setw(4) << q.prod[i].elem << "-" << q.prod[i].A << std::setw(1) << " + "  << std::setw(2) << q.prod[i].decay;
 			file << "\t\t";
 			file << std::setw(8) << q.qValues[i];
 		}
@@ -418,6 +442,7 @@ int main() {
 	all = readFile();
 	
 	// Fill structs
+	// Checks for issues with inputs here
 	target = fillTrg(target, all, trg_values, trg_choice);
 	proj = fillPrj(proj, all);
 	q = fillQ(q, target, proj, range);
