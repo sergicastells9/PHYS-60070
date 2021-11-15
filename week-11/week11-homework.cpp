@@ -28,7 +28,7 @@
 	hAll->Add(hGauss3);
 	
 	// Make canvas and split into 4 pads
-	TCanvas* canvas = new TCanvas("canvas", "Canvas", 600, 600);
+	TCanvas* canvas = new TCanvas("canvas", "Canvas", 1000, 1000);
 	canvas->Divide(2,2);
 	
 	
@@ -37,7 +37,7 @@
 	/////////////////
 	// Switch to pad 1
 	canvas->cd(1);
-	TH1D* h1 = new TH1D("", "ShowBackground Fit", 1000, 0, 100);
+	TH1D* h1 = new TH1D("Hist 1", "ShowBackground Fit", 1000, 0, 100);
 	h1->Add(hAll);
 	h1->Draw();
 	
@@ -53,7 +53,7 @@
 	/////////////////
 	// Switch to pad 2
 	canvas->cd(2);
-	TH1D* h2 = new TH1D("", "Quadractic with Peaks Fit", 1000, 0, 100);
+	TH1D* h2 = new TH1D("Hist 2", "Quadractic with Peaks Fit", 1000, 0, 100);
 	h2->Add(hAll);
 	h2->Draw();
 	
@@ -71,7 +71,7 @@
 	/////////////////
 	// Switch to pad 3
 	canvas->cd(3);
-	TH1D* h3 = new TH1D("", "Quadractic without Peaks Fit", 1000, 0, 100);
+	TH1D* h3 = new TH1D("Hist 3", "Quadractic without Peaks Fit", 1000, 0, 100);
 	h3->Add(hAll);
 	h3->Draw();
 	
@@ -115,12 +115,9 @@
 	THStack* h4 = new THStack("", "Signals");
 	
 	// Set style/colors for histograms
-	hDiff1->SetMarkerStyle(20);
-	hDiff2->SetMarkerStyle(20);
-	hDiff3->SetMarkerStyle(20);
-	hDiff1->SetMarkerColor(kBlue);
-	hDiff2->SetMarkerColor(kGreen);
-	hDiff3->SetMarkerColor(kRed);
+	hDiff1->SetLineColor(kBlack);
+	hDiff2->SetLineColor(kAzure);
+	hDiff3->SetLineColor(kRed);
 	
 	// Add to THStack
 	h4->Add(hDiff1);
@@ -138,6 +135,9 @@
 	legend->AddEntry(hDiff3, "hDiff3", "l");
 	legend->Draw("same");
 	
+	// Red plot looks the best so the 3rd method probably works the best here.
 	
+	// Save plots to file
+	canvas->SaveAs("plots.png");
 	
 }
