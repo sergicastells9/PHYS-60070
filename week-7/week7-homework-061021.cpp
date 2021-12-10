@@ -32,71 +32,12 @@ float Calibrator(float channel, float aa, float bb) {
 
 // Overload #3: Also takes energy array and detNo. Saves to file
 void Calibrator(float *channel, float *energy, const float *aa, const float *bb, const int detNo) {
-	// Input file setup
-	std::fstream infile("hist.dat", std::fstream::in);
-	
-	if(!infile) {
-		std::cout << "Input file failed to open!" << std::endl;
-		exit(1);
+	// Calibrate data
+	for(int i = 0; i < detNo; i++) {
+		energy[i] = aa[i] * channel[i] + bb[i];
 	}
 	
-	// Output file setup
-	std::fstream outfile("output.dat", std::fstream::out);
-	
-	if(!outfile) {
-		std::cout << "Output file failed to open!" << std::endl;
-		exit(1);
-	}
-	
-	// Set number of events + buffer
-	int events = 100000;
-	std::string buffer;
-	
-	// Setup histogram bins
-	int hist1[100] = {};
-	int hist2[100] = {};
-	int hist3[100] = {};
-	int hist4[100] = {};
-	int bins[100] = {};
-	
-	// Loop through events, calibrate, fill histograms
-	for(int i = 0; i < events; i++) {
-		// Fill channel
-		for(int j = 0; j < detNo; j++) {
-			infile >> channel[j];
-		}
-		
-		// Cycle to next event
-		std::getline(infile, buffer);
-		
-		// Fill histograms
-		for(int j = 0; j < 100; j++) {
-			bins[j] = j * 10;
-			
-			if(energy[0] >= j * 10 && energy[0] < (j+1) * 10){
-                hist1[j] += 1;
-            }
-            if(energy[1] >= j * 10 && energy[1] < (j+1) * 10){
-                hist2[j] += 1;
-            }
-            if(energy[2] >= j * 10 && energy[2] < (j+1) * 10){
-                hist3[j] += 1;
-            }
-            if(energy[3] >= j * 10 && energy[3] < (j+1) * 10){
-                hist4[j] += 1;
-            }
-		}
-	}
-	
-	
-	// Save to output file
-	for(int i = 0; i < 100; i++) {
-		outfile << std::setw(4) << bins[i] << " " << hist1[i] << " " << hist2[i] << " " << hist3[i] << " " << hist4[i] << std::endl;
-	}
-	
-	// Close files
-	infile.close();
-	outfile.close();
+	// No need to return anything since energy is passed by reference
 }
 
 // Overload #4: Returns energy calibration calculated in function

@@ -1,7 +1,6 @@
 /*
 	Author: Sergi Castells
 	Description: Problem 5/6 asks user for input (name, phone number) and checks input.
-	Problem 10 
 */
 
 
@@ -11,8 +10,7 @@
 
 
 int main() {
-	/*
-	// Problem 5/6
+	// Problem 5
 	std::string name;
 	char first;
 	char vowel[5] = {'a', 'e', 'i', 'o', 'u'};
@@ -48,19 +46,19 @@ int main() {
 				break;
 			}
 		}
-		if(i == 4) {
+		else if(i == 4) {
 			if(phone[i] != ')') {
 				std::cout << "Formatting incorrect. Missing parentheses around first three numbers." << std::endl;
 				break;
 			}
 		}
-		if(i == 5 || i == 9) {
+		else if(i == 5 || i == 9) {
 			if(phone[i] != '-') {
 				std::cout << "Formatting incorrect. Missing dashes." << std::endl;
 				break;
 			}
 		}
-		if(i != 0 && i != 4 && i != 5 && i != 9){
+		else if(i != 0 && i != 4 && i != 5 && i != 9){
 			if(isdigit(phone[i]) != true) {
 				std::cout << "Formatting incorrect. Missing numbers." << std::endl;
 				break;
@@ -68,7 +66,7 @@ int main() {
 		}
 	}
 	
-	
+	// Problem 6
 	std::string age;
 	
 	std::cout << "What is your age?" << std::endl;
@@ -81,30 +79,4 @@ int main() {
 			break;
 		}
 	}
-	*/
-	
-	
-	std::ifstream fIn;
-	fIn.open("file_test.dat", std::ofstream::in);
-	
-	int inp[2];
-	std::cout << "What product do you want (i <= 9, j <= 19?" << std::endl;
-	std::cin >> inp[0] >> inp[1];
-	
-	// Skip lines i-1 times
-	for(int i = 1; i < inp[1]; i++) {
-		std::string tmp;
-		getline(fIn, tmp);
-	}
-	
-	// Move sideways 4*(i-1) times
-	fIn.seekg(4*(inp[0]-1), std::ios::cur);
-	
-	// Read and print out result
-	char out[3];
-	fIn.read(out, 3);
-	std::cout << "Product of " << inp[0] << " and " << inp[1] << " is: " << out[0] << out[1] << out[2] << std::endl;
-	
-	
-	return 0;
 }

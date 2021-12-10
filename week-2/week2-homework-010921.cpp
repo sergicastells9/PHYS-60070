@@ -13,6 +13,15 @@
 
 char tab = '\t';
 
+// Save time by computing root values here
+void setVars(long double a, long double b, long double c,
+			long double &quad1a, long double &quad1b, long double &quad2a, long double &quad2b) {
+	quad1a = (-b + std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
+	quad1b = (-b - std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
+	quad2a = (2*c) / (-b + std::sqrt(std::pow(b,2) - 4*a*c));
+	quad2b = (2*c) / (-b - std::sqrt(std::pow(b,2) - 4*a*c));
+}
+
 int main() {
 	std::cout << std::setprecision(6);
 	
@@ -23,7 +32,6 @@ int main() {
 	
 	
 	// Test the example functions below
-	
 	long double test1[3] = {0.001, 1000, 0.001};
 	long double test2[3] = {1, -3, 2};
 	long double test3[3] = {0.001, -1000, 0.001};
@@ -34,10 +42,8 @@ int main() {
 	b = test1[1];
 	c = test1[2];
 	
-	quad1a = (-b + std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
-	quad1b = (-b - std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
-	quad2a = (2*c) / (-b + std::sqrt(std::pow(b,2) - 4*a*c));
-	quad2b = (2*c) / (-b - std::sqrt(std::pow(b,2) - 4*a*c));
+	// Compute roots
+	setVars(a,b,c,quad1a,quad1b,quad2a,quad2b);
 	
 	std::cout << quad1a << tab << quad1b << tab << quad2a << tab << quad2b << std::endl;
 	
@@ -47,10 +53,8 @@ int main() {
 	b = test2[1];
 	c = test2[2];
 	
-	quad1a = (-b + std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
-	quad1b = (-b - std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
-	quad2a = (2*c) / (-b + std::sqrt(std::pow(b,2) - 4*a*c));
-	quad2b = (2*c) / (-b - std::sqrt(std::pow(b,2) - 4*a*c));
+	// Compute roots
+	setVars(a,b,c,quad1a,quad1b,quad2a,quad2b);
 	
 	std::cout << quad1a << tab << quad1b << tab << quad2a << tab << quad2b << std::endl;
 	
@@ -60,17 +64,14 @@ int main() {
 	b = test3[1];
 	c = test3[2];
 	
-	quad1a = (-b + std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
-	quad1b = (-b - std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
-	quad2a = (2*c) / (-b + std::sqrt(std::pow(b,2) - 4*a*c));
-	quad2b = (2*c) / (-b - std::sqrt(std::pow(b,2) - 4*a*c));
+	// Compute roots
+	setVars(a,b,c,quad1a,quad1b,quad2a,quad2b);
 	
 	std::cout << quad1a << tab << quad1b << tab << quad2a << tab << quad2b << std::endl;
 	
 	
 	
 	// Test various other functions here. This now works in all cases when using a long double.
-	
 	long double test4[3] = {0.001, -1000, 0.001};
 	a = test4[0];
 	b = test4[1];
@@ -84,7 +85,7 @@ int main() {
 			quad1b = (-b - std::sqrt(std::pow(b,2) - 4*a*c)) / (2*a);
 			std::cout << quad1a << tab << quad1b << std::endl;
 		}
-		if(b > 0) {
+		else if(b > 0) {
 			quad2a = (2*c) / (-b + std::sqrt(std::pow(b,2) - 4*a*c));
 			quad2b = (2*c) / (-b - std::sqrt(std::pow(b,2) - 4*a*c));
 			std::cout << quad2a << tab << quad2b << std::endl;
