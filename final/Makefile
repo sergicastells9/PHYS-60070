@@ -20,8 +20,8 @@ GLIBS         = $(ROOTGLIBS) $(SYSLIBS)
 #----------------------------------------------------#
 # Here is where you define the files that will be used 
 # and the output file that will be created.
-FILES          = loader.cpp
-PROGRAMS      = loader
+FILES          = converter.cpp
+PROGRAMS      = converter
 OBJS := $(FILES:.cpp=.o)
 #----------------------------------------------------#
 
