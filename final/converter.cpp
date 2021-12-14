@@ -29,7 +29,7 @@ int main() {
 	// Loop over file
 	while(!fileIn.eof()) {
 		fileIn >> gamma1;
-		fileIn >> energy;
+		fileIn >> gamma2;
 		fileIn >> detector;
 		fileIn >> energy;
 		

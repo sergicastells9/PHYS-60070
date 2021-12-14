@@ -7,13 +7,16 @@
 	// Read file
 	TFile* file = new TFile("data.root");
 	
+	// Get TTree (resubmit fix)
+	TTree* tree1 = dynamic_cast<TTree*>(file->Get("t1"));
+	
 	// Set up branch variables
 	Int_t detector[4];
 	Double_t energy[4];
 	
 	// Set branch addresses
-	t1->SetBranchAddress("det", detector);
-	t1->SetBranchAddress("ene", energy);
+	tree1->SetBranchAddress("det", detector);
+	tree1->SetBranchAddress("ene", energy);
 	
 	// Prep canvases for plotting
 	TCanvas* c1 = new TCanvas("c1", "Canvas1", 800, 800);
@@ -34,7 +37,7 @@
 	TH1D* h9 = new TH1D("h9", "Det 0 Coincidence w Det 1 within Peak 0", 100, 250, 350);
 	
 	// Get number of entries
-	Int_t nEntries = t1->GetEntries();
+	Int_t nEntries = tree1->GetEntries();
 	
 	// Set up variables
 	Int_t binmax, binmin;
@@ -43,7 +46,7 @@
 	
 	// Fill histograms
 	for(Int_t i = 0; i < nEntries; i++) {
-		t1->GetEntry(i);
+		tree1->GetEntry(i);
 		
 		// Fill hists 1-4
 		if(energy[0] != 0) h1->Fill(energy[0]);
