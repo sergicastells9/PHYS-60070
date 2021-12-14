@@ -20,7 +20,7 @@
 	t1->SetBranchAddress("ene", &energy);
 	
 	// Set up arrays of decay/angle information
-	Double_t decays[6] = {1385, 1258, 976, 849, 409, 127}; // Possible gamma decay energies for 1358 keV nucleus
+	std::vector<Double_t> decays = {1385, 1258, 976, 849, 409, 127}; // Possible gamma decay energies for 1358 keV nucleus
 	Double_t angles[7] = {7, 22, 47, 67, 92, 127, 177}; // Detector angles
 	Double_t x_errors[7]; // Detectors span 5 degrees each
 	Double_t y_errors[7]; // 1/sqrt(N)
