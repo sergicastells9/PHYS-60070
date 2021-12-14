@@ -60,7 +60,9 @@
 		}
 		
 		// No need to check for double counting since there are no double gamma events
-		histograms.at(detector)->Fill(energy);
+		if(std::find(decays.begin(), decays.end(), gamma1) || std::find(decays.begin(), decays.end(), gamma2)) {
+			histograms.at(detector)->Fill(energy);
+		}
 		
 		// Check time per 1000 rows (it increases for some reason???)
 		if(i%1000 < 0.001) {
